@@ -30,7 +30,7 @@ scrapeaway <- function(chunksize){
     Downloaded=integer()
   )
   
-  message(paste("Downloading next batch of", chunksize, "pdf files..."))
+  message(paste("Downloading next batch of", chunksize, "pdf documents..."))
   
   for (i in 1:chunksize) {
     GetPdfFromDataStore(FilesNotDownloaded$DigitalFileID[i])
@@ -80,7 +80,6 @@ scrapeaway <- function(chunksize){
   message(paste("Detecting taxa mentioned in the current batch of pdf documents..."))
   hits<-as.data.frame(kwic(docscorpus,phrase(dicSpecies),valuetype="fixed", include_docvars=TRUE))
   names(hits)[5]<-"SciName"
-  message(paste(nrow(hits), "new mentions of taxa added to the database"))
   
   # extract the doc IDs and update the analyzed table
   for (i in 1:nrow(docs)) {
@@ -88,17 +87,19 @@ scrapeaway <- function(chunksize){
   }
   
   # Write data to SQL table
+  message(paste(nrow(hits), "new mentions of taxa being added to the database..."))
   ch <- odbcConnect("pdfScraper")
   sqlSave(ch,hits,"dbo.tbl_TaxonomicScrapingResults",append=TRUE,rownames=FALSE)
   sqlSave(ch,tempAnalysisStatus,"dbo.tbl_TaxonomyAnalysisStatus",append=TRUE,rownames=FALSE)
   pdfFileProcessingStatus<-sqlFetch(ch,"dbo.vw_pdfFileProcessingStatus",as.is = c(TRUE), stringsAsFactors = FALSE)
   odbcClose(ch)
+  message(paste("Success!", nrow(hits), "new mentions of taxa have been added!"))
   
   # Delete Files in the directory
   FilesNotDownloaded<-subset(pdfFileProcessingStatus, Downloaded != 1)
   file.remove(file.path("d:/texts", list.files("d:/texts"))) 
   
-  message(paste(nrow(FilesNotDownloaded), "to go"))
+  message(paste(nrow(FilesNotDownloaded), "pdf documents to go"))
   print(Sys.time()-start_time)
   
 }

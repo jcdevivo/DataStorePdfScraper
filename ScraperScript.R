@@ -25,7 +25,8 @@ scrapeaway <- function(chunksize){
   FilesNotDownloaded<-subset(pdfFileProcessingStatus, Downloaded != 1)
   
   # initialize temp download status data frame
-  tempDownloadStatus<-data.frame(
+    # rm(tempDownloadStatus)
+    tempDownloadStatus<-data.frame(
     DigitalFileID=integer(),
     Downloaded=integer()
   )
@@ -44,7 +45,8 @@ scrapeaway <- function(chunksize){
   pdfFileProcessingStatus<-sqlFetch(ch,"dbo.vw_pdfFileProcessingStatus",as.is = c(TRUE), stringsAsFactors = FALSE)
   odbcClose(ch)
   
-  # initialize temp download status data frame
+  # initialize temp scrape status data frame
+  # rm(tempScrapeStatus)
   tempScrapeStatus<-data.frame(
     DigitalFileID=integer(),
     Scraped=integer()
@@ -64,13 +66,14 @@ scrapeaway <- function(chunksize){
     tempScrapeStatus<-rbind(tempScrapeStatus,data.frame(DigitalFileID=docs$docvar1[i],Scraped=1))
   }
   
-  # update downloaded table in the SQL database
+  # update scraped status in the processing table in the SQL database
   ch <- odbcConnect("pdfScraper")
   sqlSave(ch,tempScrapeStatus,"dbo.tbl_ScrapeStatus",append=TRUE,rownames=FALSE)
   pdfFileProcessingStatus<-sqlFetch(ch,"dbo.vw_pdfFileProcessingStatus",as.is = c(TRUE), stringsAsFactors = FALSE)
   odbcClose(ch)
   
   # initialize temp analysis status data frame
+  # rm(temAnalysisStatus)
   tempAnalysisStatus<-data.frame(
     DigitalFileID=integer(),
     TaxonomyAnalyzed=integer()
